@@ -9,69 +9,66 @@ permissions:
   contents: read
 
 jobs:
-  upload-artifacts:
-    runs-on: ${{ matrix.os.long }}
+  build:
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os:
-        - long: ubuntu-latest
-          short: linux
-        - long: macOS-latest
-          short: mac
-        - long: windows-latest
-          short: win
+        include:
+        # Built on native runners per arch so the produced binary is always
+        # the target arch (no cross-linking surprises).
+        - os: macos-15-intel
+          target: x86_64-apple-darwin
+        - os: macos-14
+          target: aarch64-apple-darwin
+        # Linux x86_64 built natively (gnu). git-secateurs links libgit2 via
+        # libgit2-sys (a C dependency), so a native gnu build is the reliable
+        # choice; the runner's glibc is the effective floor.
+        - os: ubuntu-latest
+          target: x86_64-unknown-linux-gnu
+        # Linux aarch64 built natively on the ARM runner.
+        - os: ubuntu-24.04-arm
+          target: aarch64-unknown-linux-gnu
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # master
       with:
         toolchain: stable
+        targets: ${{ matrix.target }}
     - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-    - run: cargo build --release
-    - name: Archive
-      shell: bash
-      working-directory: target/release
+    - name: Install apt build deps (Linux)
+      if: matrix.apt_install != ''
       run: |
-        VERSION="${{github.ref}}"
-        VERSION="${VERSION#refs/tags/}"
-        ARCHIVE="git-secat-${{matrix.os.short}}-$VERSION.tgz"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-
-        rm -rf artifacts
-        mkdir -p artifacts/git-secat
-        cp 'git-secat' artifacts/git-secat/
-        echo '${{github.sha}} ${{github.ref}}' | tee artifacts/git-secat/git-ref
-
-        if command -v sha256sum; then
-            sha256sum 'git-secat' | tee artifacts/git-secat/sha256sums
-        else
-            shasum -a 256 'git-secat' | tee artifacts/git-secat/sha256sums
-        fi
-
-        cd artifacts
-        tar cvzf "$ARCHIVE" git-secat
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends ${{ matrix.apt_install }}
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }} --bin git-secat
+    - name: Create tarball
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        tarball="git-secateurs-${{ matrix.target }}.tar.xz"
+        tar -cJf "dist/${tarball}" -C "target/${{ matrix.target }}/release" git-secat
+        cd dist
+        shasum -a 256 "${tarball}" > "${tarball}.sha256"
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: git-secat-${{matrix.os.short}}-${{env.VERSION}}
-        path: target/release/artifacts/${{env.ARCHIVE}}
+        name: ${{ matrix.target }}
+        path: dist/*
 
   github-release:
     needs:
-    - upload-artifacts
+    - build
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-    - name: Resolve version
-      run: |
-        VERSION="${{github.ref}}"
-        VERSION="${VERSION#refs/tags/}"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
-        pattern: git-secat-*-${{env.VERSION}}
-        path: ./dist
+        path: dist
         merge-multiple: true
+    - run: ls -laR dist
     - name: Create GitHub release
       uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
       with:
@@ -79,7 +76,9 @@ jobs:
         name: Release ${{ github.ref_name }}
         draft: true
         prerelease: true
-        files: ./dist/*.tgz
+        files: |
+          dist/*.tar.xz
+          dist/*.sha256
 
   cargo-publish:
     runs-on: ubuntu-latest
@@ -89,5 +88,17 @@ jobs:
       with:
         toolchain: stable
     - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-    - name: Cargo publish
-      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+    - name: Publish to crates.io (skip if version already published)
+      run: |
+        set -euo pipefail
+        name="$(cargo metadata --no-deps --format-version 1 | python3 -c 'import sys,json;print(json.load(sys.stdin)["packages"][0]["name"])')"
+        version="$(cargo metadata --no-deps --format-version 1 | python3 -c 'import sys,json;print(json.load(sys.stdin)["packages"][0]["version"])')"
+        echo "Package: ${name} ${version}"
+        # Idempotent: if this version is already on crates.io, skip rather than fail.
+        if curl -sSf "https://crates.io/api/v1/crates/${name}/${version}" >/dev/null 2>&1; then
+          echo "crates.io already has ${name} ${version}; skipping publish."
+          exit 0
+        fi
+        cargo publish --token "${CRATES_IO_TOKEN}"
+      env:
+        CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
