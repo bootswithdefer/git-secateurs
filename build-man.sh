@@ -7,8 +7,8 @@ build)
     ;;
 run|"")
     mkdir -p docs/
-    cargo run --bin build-man --features build-man > docs/git-trim.1
-    MANWIDTH=120 man --no-hyphenation --no-justification docs/git-trim.1 > docs/git-trim.man
+    cargo run --bin build-man --features build-man > docs/git-secat.1
+    MANWIDTH=120 man --no-hyphenation --no-justification docs/git-secat.1 > docs/git-secat.man
     ;;
 *)
     echo "Unknown mode: $MODE"

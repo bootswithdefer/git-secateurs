@@ -5,11 +5,11 @@ use std::convert::TryFrom;
 use anyhow::Result;
 use git2::Repository;
 
-use git_trim::{
-    get_trim_plan, ClassifiedBranch, Git, LocalBranch, PlanParam, RemoteTrackingBranch,
+use git_secateurs::{
+    ClassifiedBranch, Git, LocalBranch, PlanParam, RemoteTrackingBranch, get_plan,
 };
 
-use fixture::{rc, test_default_param, Fixture};
+use fixture::{Fixture, rc, test_default_param};
 
 fn fixture() -> Fixture {
     rc().append_fixture_trace(
@@ -86,7 +86,7 @@ fn test_feature_to_develop() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -123,7 +123,7 @@ fn test_feature_to_develop_but_forgot_to_delete() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -169,7 +169,7 @@ fn test_develop_to_master() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -209,7 +209,7 @@ fn test_develop_to_master_but_forgot_to_delete() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -254,7 +254,7 @@ fn test_hotfix_to_master() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -293,7 +293,7 @@ fn test_hotfix_to_master_forgot_to_delete() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -331,7 +331,7 @@ fn test_rejected_feature_to_develop() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -370,7 +370,7 @@ fn test_rejected_hotfix_to_master() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &param())?;
+    let plan = get_plan(&git, &param())?;
 
     assert_eq!(
         plan.to_delete,
@@ -412,7 +412,7 @@ fn test_protected_feature_to_develop() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(
+    let plan = get_plan(
         &git,
         &PlanParam {
             protected_patterns: vec!["refs/heads/feature"],
@@ -458,7 +458,7 @@ fn test_protected_feature_to_master() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(
+    let plan = get_plan(
         &git,
         &PlanParam {
             protected_patterns: vec!["refs/heads/feature"],
@@ -496,7 +496,7 @@ fn test_rejected_protected_feature_to_develop() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(
+    let plan = get_plan(
         &git,
         &PlanParam {
             protected_patterns: vec!["refs/heads/feature"],

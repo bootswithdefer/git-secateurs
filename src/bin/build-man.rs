@@ -1,4 +1,4 @@
-use git_trim::args::Args;
+use git_secateurs::args::Args;
 
 use clap::{Command, CommandFactory};
 use man::prelude::*;

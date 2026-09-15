@@ -6,11 +6,11 @@ use std::iter::FromIterator;
 use anyhow::Result;
 use git2::Repository;
 
-use git_trim::args::{DeleteFilter, DeleteRange, Scope};
+use git_secateurs::args::{DeleteFilter, DeleteRange, Scope};
 
-use git_trim::{get_trim_plan, Git, PlanParam};
+use git_secateurs::{Git, PlanParam, get_plan};
 
-use fixture::{rc, test_default_param, Fixture};
+use fixture::{Fixture, rc, test_default_param};
 
 fn fixture() -> Fixture {
     rc().append_fixture_trace(
@@ -49,7 +49,7 @@ fn test_bases_implicit_value() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(
+    let plan = get_plan(
         &git,
         &PlanParam {
             delete: DeleteFilter::from_iter(vec![

@@ -28,41 +28,37 @@ pub struct Config {
 impl Config {
     pub fn read(repo: &Repository, config: &GitConfig, args: &Args) -> Result<Self> {
         fn non_empty<T>(x: Vec<T>) -> Option<Vec<T>> {
-            if x.is_empty() {
-                None
-            } else {
-                Some(x)
-            }
+            if x.is_empty() { None } else { Some(x) }
         }
 
-        let bases = get_comma_separated_multi(config, "trim.bases")
+        let bases = get_comma_separated_multi(config, "secat.bases")
             .with_explicit(non_empty(args.bases.clone()))
             .with_default(get_branches_tracks_remote_heads(repo, config)?)
             .parses_and_collect::<HashSet<String>>()?;
-        let protected = get_comma_separated_multi(config, "trim.protected")
+        let protected = get_comma_separated_multi(config, "secat.protected")
             .with_explicit(non_empty(args.protected.clone()))
             .parses_and_collect::<Vec<String>>()?;
-        let update = get(config, "trim.update")
+        let update = get(config, "secat.update")
             .with_explicit(args.update())
             .with_default(true)
             .read()?
             .expect("has default");
-        let update_interval = get(config, "trim.updateInterval")
+        let update_interval = get(config, "secat.updateInterval")
             .with_explicit(args.update_interval)
             .with_default(5)
             .read()?
             .expect("has default");
-        let confirm = get(config, "trim.confirm")
+        let confirm = get(config, "secat.confirm")
             .with_explicit(args.confirm())
             .with_default(true)
             .read()?
             .expect("has default");
-        let detach = get(config, "trim.detach")
+        let detach = get(config, "secat.detach")
             .with_explicit(args.detach())
             .with_default(true)
             .read()?
             .expect("has default");
-        let delete = get_comma_separated_multi(config, "trim.delete")
+        let delete = get_comma_separated_multi(config, "secat.delete")
             .with_explicit(non_empty(args.delete.clone()))
             .with_default(DeleteRange::merged_origin())
             .parses_and_collect::<DeleteFilter>()?;
@@ -105,10 +101,9 @@ fn get_branches_tracks_remote_heads(repo: &Repository, config: &GitConfig) -> Re
 
             if let RemoteTrackingBranchStatus::Exists(upstream) =
                 branch.fetch_upstream(repo, config)?
+                && upstream.refname == refname
             {
-                if upstream.refname == refname {
-                    local_bases.push(branch.short_name().to_owned());
-                }
+                local_bases.push(branch.short_name().to_owned());
             }
         }
     }
@@ -290,7 +285,7 @@ impl ConfigValues for Vec<String> {
         let mut entries = config.entries(Some(key))?;
         while let Some(entry) = entries.next() {
             let entry = entry?;
-            if let Some(value) = entry.value() {
+            if let Ok(value) = entry.value() {
                 result.push(value.to_owned());
             } else {
                 warn!(

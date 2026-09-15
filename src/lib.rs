@@ -19,15 +19,15 @@ use crate::branch::RemoteTrackingBranchStatus;
 pub use crate::branch::{
     LocalBranch, Refname, RemoteBranch, RemoteBranchError, RemoteTrackingBranch,
 };
+pub use crate::core::{ClassifiedBranch, Plan, SkipSuggestion};
 use crate::core::{
-    get_direct_fetch_branches, get_non_tracking_local_branches,
-    get_non_upstream_remote_tracking_branches, get_remote_heads, get_tracking_branches, Classifier,
-    DirectFetchClassificationRequest, NonTrackingBranchClassificationRequest,
+    Classifier, DirectFetchClassificationRequest, NonTrackingBranchClassificationRequest,
     NonUpstreamBranchClassificationRequest, TrackingBranchClassificationRequest,
+    get_direct_fetch_branches, get_non_tracking_local_branches,
+    get_non_upstream_remote_tracking_branches, get_remote_heads, get_tracking_branches,
 };
-pub use crate::core::{ClassifiedBranch, SkipSuggestion, TrimPlan};
 use crate::merge_tracker::MergeTracker;
-pub use crate::subprocess::{ls_remote_head, remote_update, RemoteHead};
+pub use crate::subprocess::{RemoteHead, ls_remote_head, remote_update};
 pub use crate::util::ForceSendSync;
 
 pub struct Git {
@@ -51,7 +51,7 @@ pub struct PlanParam<'a> {
     pub detach: bool,
 }
 
-pub fn get_trim_plan(git: &Git, param: &PlanParam) -> Result<TrimPlan> {
+pub fn get_plan(git: &Git, param: &PlanParam) -> Result<Plan> {
     let bases = resolve_bases(&git.repo, &git.config, &param.bases)?;
     let base_upstreams: Vec<_> = bases
         .iter()
@@ -162,7 +162,7 @@ pub fn get_trim_plan(git: &Git, param: &PlanParam) -> Result<TrimPlan> {
 
     let classifications = classifier.classify()?;
 
-    let mut result = TrimPlan {
+    let mut result = Plan {
         skipped,
         to_delete: HashSet::new(),
         preserved: Vec::new(),

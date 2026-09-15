@@ -7,11 +7,11 @@ use std::iter::FromIterator;
 use anyhow::Result;
 use git2::Repository;
 
-use git_trim::args::{Args, DeleteFilter, DeleteUnit, Scope};
-use git_trim::config::{Config, ConfigValue};
-use git_trim::Git;
+use git_secateurs::Git;
+use git_secateurs::args::{Args, DeleteFilter, DeleteUnit, Scope};
+use git_secateurs::config::{Config, ConfigValue};
 
-use fixture::{rc, Fixture};
+use fixture::{Fixture, rc};
 
 fn fixture() -> Fixture {
     rc().append_fixture_trace(
@@ -56,7 +56,7 @@ fn test_bases_config_value() -> Result<()> {
         "local",
         r#"
         local <<EOF
-            git config trim.bases some-branch
+            git config secat.bases some-branch
         EOF
         "#,
     )?;
@@ -77,7 +77,7 @@ fn test_bases_args_value() -> Result<()> {
         "local",
         r#"
         local <<EOF
-            git config trim.bases some-branch
+            git config secat.bases some-branch
         EOF
         "#,
     )?;
@@ -107,8 +107,8 @@ fn test_bases_multiple_comma_separated_values() -> Result<()> {
         "local",
         r#"
         local <<EOF
-            git config --add trim.bases a,b
-            git config --add trim.bases c,d
+            git config --add secat.bases a,b
+            git config --add secat.bases c,d
         EOF
         "#,
     )?;
@@ -134,8 +134,8 @@ fn test_protected_multiple_comma_separated_values() -> Result<()> {
         "local",
         r#"
         local <<EOF
-            git config --add trim.protected a,b
-            git config --add trim.protected c,d
+            git config --add secat.protected a,b
+            git config --add secat.protected c,d
         EOF
         "#,
     )?;
@@ -161,8 +161,8 @@ fn test_delete_filter_multiple_comma_separated_values() -> Result<()> {
         "local",
         r#"
         local <<EOF
-            git config --add trim.delete merged:origin,merged:upstream
-            git config --add trim.delete stray,diverged:upstream
+            git config --add secat.delete merged:origin,merged:upstream
+            git config --add secat.delete stray,diverged:upstream
         EOF
         "#,
     )?;

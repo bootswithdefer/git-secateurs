@@ -5,9 +5,9 @@ use std::convert::TryFrom;
 use anyhow::Result;
 use git2::Repository;
 
-use git_trim::{get_trim_plan, ClassifiedBranch, Git, LocalBranch};
+use git_secateurs::{ClassifiedBranch, Git, LocalBranch, get_plan};
 
-use fixture::{rc, test_default_param, Fixture};
+use fixture::{Fixture, rc, test_default_param};
 
 fn fixture() -> Fixture {
     rc().append_fixture_trace(
@@ -56,7 +56,7 @@ fn test_noff() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &test_default_param())?;
+    let plan = get_plan(&git, &test_default_param())?;
     assert_eq!(
         plan.to_delete,
         set! {
@@ -82,7 +82,7 @@ fn test_rebase() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &test_default_param())?;
+    let plan = get_plan(&git, &test_default_param())?;
     assert_eq!(
         plan.to_delete,
         set! {
@@ -106,7 +106,7 @@ fn test_squash() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &test_default_param())?;
+    let plan = get_plan(&git, &test_default_param())?;
     assert_eq!(
         plan.to_delete,
         set! {
@@ -180,7 +180,7 @@ fn test_mixed() -> Result<()> {
     )?;
 
     let git = Git::try_from(Repository::open(guard.working_directory())?)?;
-    let plan = get_trim_plan(&git, &test_default_param())?;
+    let plan = get_plan(&git, &test_default_param())?;
     assert_eq!(
         plan.to_delete,
         set! {

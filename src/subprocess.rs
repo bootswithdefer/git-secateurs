@@ -103,13 +103,13 @@ pub fn get_noff_merged_locals(
             }
             let branch = LocalBranch::new(refname);
             let upstream = branch.fetch_upstream(repo, config)?;
-            if let RemoteTrackingBranchStatus::Exists(upstream) = upstream {
-                if base == &upstream {
-                    continue;
-                }
+            if let RemoteTrackingBranchStatus::Exists(upstream) = upstream
+                && base == &upstream
+            {
+                continue;
             }
             let reference = repo.find_reference(refname)?;
-            if reference.symbolic_target().is_some() {
+            if reference.symbolic_target()?.is_some() {
                 continue;
             }
             result.insert(branch);
@@ -144,7 +144,7 @@ pub fn get_noff_merged_remotes(
                 continue;
             }
             let reference = repo.find_reference(refname)?;
-            if reference.symbolic_target().is_some() {
+            if reference.symbolic_target()?.is_some() {
                 continue;
             }
             result.insert(branch);
@@ -213,10 +213,10 @@ pub fn get_worktrees(repo: &Repository) -> Result<HashMap<LocalBranch, String>> 
             worktree = Some(stripped.to_owned());
         } else if let Some(stripped) = line.strip_prefix("branch ") {
             branch = Some(LocalBranch::new(stripped));
-        } else if line.is_empty() {
-            if let (Some(worktree), Some(branch)) = (worktree.take(), branch.take()) {
-                result.insert(branch, worktree);
-            }
+        } else if line.is_empty()
+            && let (Some(worktree), Some(branch)) = (worktree.take(), branch.take())
+        {
+            result.insert(branch, worktree);
         }
     }
 
@@ -280,9 +280,11 @@ pub fn push_delete(
     remote_branches: &[&RemoteBranch],
     dry_run: bool,
 ) -> Result<()> {
-    assert!(remote_branches
-        .iter()
-        .all(|branch| branch.remote == remote_name));
+    assert!(
+        remote_branches
+            .iter()
+            .all(|branch| branch.remote == remote_name)
+    );
     let mut command = vec!["push", "--delete", "--no-verify"];
     if dry_run {
         command.push("--dry-run");

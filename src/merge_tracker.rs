@@ -132,7 +132,7 @@ impl MergeTracker {
         if is_merged_by_rev_list(repo, base, branch.refname())? {
             let mut set = self.merged_set.lock().unwrap();
             set.insert(target_commit_id_string.clone());
-            debug!("rebase merged: {} -> {}", branch.refname(), &base);
+            debug!("rebase merged: {} -> {}", branch.refname(), base);
             return Ok(MergeState {
                 merged: true,
                 commit: target_commit_id_string,
@@ -155,7 +155,7 @@ impl MergeTracker {
         };
 
         if squash_merged {
-            debug!("squash merged: {} -> {}", branch.refname(), &base);
+            debug!("squash merged: {} -> {}", branch.refname(), base);
         }
         Ok(MergeState {
             merged: squash_merged,
@@ -175,12 +175,12 @@ fn is_squash_merged(
     let tree = repo
         .revparse_single(&format!("{}^{{tree}}", refname))?
         .peel_to_tree()?;
-    let tmp_sig = Signature::now("git-trim", "git-trim@squash.merge.test.local")?;
+    let tmp_sig = Signature::now("git-secat", "git-secat@squash.merge.test.local")?;
     let dangling_commit = repo.commit(
         None,
         &tmp_sig,
         &tmp_sig,
-        "git-trim: squash merge test",
+        "git-secat: squash merge test",
         &tree,
         &[&repo.find_commit(Oid::from_str(merge_base)?)?],
     )?;

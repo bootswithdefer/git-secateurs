@@ -13,11 +13,11 @@ use crate::branch::{
     LocalBranch, Refname, RemoteBranch, RemoteTrackingBranch, RemoteTrackingBranchStatus,
 };
 use crate::merge_tracker::MergeTracker;
-use crate::subprocess::{self, get_worktrees, RemoteHead};
+use crate::subprocess::{self, RemoteHead, get_worktrees};
 use crate::util::ForceSendSync;
-use crate::{config, BaseSpec, Git};
+use crate::{BaseSpec, Git, config};
 
-pub struct TrimPlan {
+pub struct Plan {
     pub skipped: HashMap<String, SkipSuggestion>,
     pub to_delete: HashSet<ClassifiedBranch>,
     pub preserved: Vec<Preserved>,
@@ -29,7 +29,7 @@ pub struct Preserved {
     pub base: bool,
 }
 
-impl TrimPlan {
+impl Plan {
     pub fn locals_to_delete(&self) -> Vec<&LocalBranch> {
         let mut result = Vec::new();
         for branch in &self.to_delete {
@@ -51,7 +51,7 @@ impl TrimPlan {
     }
 }
 
-impl TrimPlan {
+impl Plan {
     pub(crate) fn preserve_bases(
         &mut self,
         repo: &Repository,
@@ -279,7 +279,7 @@ impl TrimPlan {
                 ClassifiedBranch::MergedRemoteTracking(upstream) => {
                     let remote = upstream.to_remote_branch(repo)?;
                     if !filter.delete_merged_remote(&remote.remote) {
-                        Some(format!("merged-remote:{}", &remote.remote))
+                        Some(format!("merged-remote:{}", remote.remote))
                     } else {
                         None
                     }
@@ -287,7 +287,7 @@ impl TrimPlan {
                 ClassifiedBranch::DivergedRemoteTracking { upstream, .. } => {
                     let remote = upstream.to_remote_branch(repo)?;
                     if !filter.delete_diverged(&remote.remote) {
-                        Some(format!("diverged:{}", &remote.remote))
+                        Some(format!("diverged:{}", remote.remote))
                     } else {
                         None
                     }
@@ -295,14 +295,14 @@ impl TrimPlan {
 
                 ClassifiedBranch::MergedDirectFetch { remote, .. } => {
                     if !filter.delete_merged_remote(&remote.remote) {
-                        Some(format!("merged-remote:{}", &remote.remote))
+                        Some(format!("merged-remote:{}", remote.remote))
                     } else {
                         None
                     }
                 }
                 ClassifiedBranch::DivergedDirectFetch { remote, .. } => {
                     if !filter.delete_diverged(&remote.remote) {
-                        Some(format!("diverged:{}", &remote.remote))
+                        Some(format!("diverged:{}", remote.remote))
                     } else {
                         None
                     }
@@ -318,7 +318,7 @@ impl TrimPlan {
                 ClassifiedBranch::MergedNonUpstreamRemoteTracking(upstream) => {
                     let remote = upstream.to_remote_branch(repo)?;
                     if !filter.delete_merged_non_upstream_remote_tracking(&remote.remote) {
-                        Some(format!("remote:{}", &remote.remote))
+                        Some(format!("remote:{}", remote.remote))
                     } else {
                         None
                     }

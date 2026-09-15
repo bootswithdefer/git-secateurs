@@ -2,11 +2,10 @@ use std::convert::TryFrom;
 
 use anyhow::{Context, Result};
 use git2::{Branch, Config, Direction, Reference, Repository};
-use log::*;
 use thiserror::Error;
 
 use crate::config;
-use crate::simple_glob::{expand_refspec, ExpansionSide};
+use crate::simple_glob::{ExpansionSide, expand_refspec};
 
 pub trait Refname {
     fn refname(&self) -> &str;
@@ -129,7 +128,7 @@ impl RemoteTrackingBranch {
         repo: &Repository,
     ) -> std::result::Result<RemoteBranch, RemoteBranchError> {
         for remote_name in repo.remotes()?.iter() {
-            let remote_name = remote_name.context("non-utf8 remote name")?;
+            let remote_name = remote_name?.context("non-utf8 remote name")?;
             let remote = repo.find_remote(remote_name)?;
             if let Some(expanded) = expand_refspec(
                 &remote,
@@ -138,7 +137,7 @@ impl RemoteTrackingBranch {
                 ExpansionSide::Left,
             )? {
                 return Ok(RemoteBranch {
-                    remote: remote.name().context("non-utf8 remote name")?.to_string(),
+                    remote: remote.name()?.context("non-utf8 remote name")?.to_string(),
                     refname: expanded,
                 });
             }

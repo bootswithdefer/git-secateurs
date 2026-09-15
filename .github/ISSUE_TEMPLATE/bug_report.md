@@ -8,9 +8,9 @@ assignees: ''
 ---
 
 **Check your version before submitting the bug**
-`git-trim` is still `0.x` version and I do make a lot of silly bugs.
+`git-secat` is still `0.x` version and I do make a lot of silly bugs.
 Some bugs might be fixed on upstream version. Please update it and make sure that you're using the upstream version
-especially you've installed `git-trim` other than `cargo install` such as Homebrew or AUR.
+especially you've installed `git-secat` other than `cargo install` such as Homebrew or AUR.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -32,7 +32,7 @@ You should remove sensitive informations before put them here.
  - Version
  - `git rev-parse --abbrev-ref HEAD`
  - `git show-ref`
- - `git config --get-regexp '(push|fetch|remote|branch|trim).*' | sort`
+ - `git config --get-regexp '(push|fetch|remote|branch|secat).*' | sort`
  - `git log --oneline --graph --all`
 
 **Logs and stacktraces if necessary**
@@ -42,7 +42,7 @@ You can get more detailed and clean logs by setting some environment variable wi
 export RUST_LOG=trace
 export RAYON_NUM_THREADS=1
 export RUST_BACKTRACE=full
-git trim
+git secat
 ```
 
 ```

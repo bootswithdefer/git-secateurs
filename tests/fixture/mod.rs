@@ -6,10 +6,10 @@ use std::process::{Command, Stdio};
 use std::thread::spawn;
 
 use log::*;
-use tempfile::{tempdir, TempDir};
+use tempfile::{TempDir, tempdir};
 
-use git_trim::args::{DeleteFilter, DeleteRange, Scope};
-use git_trim::PlanParam;
+use git_secateurs::PlanParam;
+use git_secateurs::args::{DeleteFilter, DeleteRange, Scope};
 
 #[derive(Default)]
 pub struct Fixture {
@@ -66,7 +66,7 @@ impl Fixture {
         println!("{:?}", tempdir.path());
         let mut command = Command::new("bash");
         command
-            .args(&["--noprofile", "--norc", "-xeo", "pipefail"])
+            .args(["--noprofile", "--norc", "-xeo", "pipefail"])
             .current_dir(tempdir.path())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -90,7 +90,7 @@ impl Fixture {
         let merged_fixture = self
             .append_fixture_debug(&textwrap::dedent(last_fixture))
             .append_fixture_debug(&self.epilogue);
-        writeln!(stdin, "{}", &merged_fixture.fixture).unwrap();
+        writeln!(stdin, "{}", merged_fixture.fixture).unwrap();
         drop(stdin);
 
         let stdout_thread = spawn({

@@ -5,7 +5,7 @@ use git2::Repository;
 use log::*;
 use rayon::prelude::*;
 
-use crate::{ls_remote_head, ForceSendSync, RemoteHead, RemoteTrackingBranch};
+use crate::{ForceSendSync, RemoteHead, RemoteTrackingBranch, ls_remote_head};
 
 pub struct RemoteHeadChangeChecker {
     join_handle: JoinHandle<Result<Vec<RemoteHead>>>,
@@ -18,7 +18,7 @@ impl RemoteHeadChangeChecker {
             let remotes = {
                 let mut tmp = Vec::new();
                 for remote_name in repo.remotes()?.iter() {
-                    let remote_name = remote_name.context("non-utf8 remote name")?;
+                    let remote_name = remote_name?.context("non-utf8 remote name")?;
                     tmp.push(remote_name.to_owned())
                 }
                 tmp
@@ -96,9 +96,9 @@ impl RemoteHeadChangeChecker {
         }
         eprintln!(
             r#"Or you can set base branches manually:
- * `git config trim.bases develop,master` will set base branches for git-trim for a repository.
- * `git config --global trim.bases develop,master` will set base branches for `git-trim` globally.
- * `git trim --bases develop,master` will temporarily set base branches for `git-trim`"#
+ * `git config secat.bases develop,master` will set base branches for git-secat for a repository.
+ * `git config --global secat.bases develop,master` will set base branches for `git-secat` globally.
+ * `git secat --bases develop,master` will temporarily set base branches for `git-secat`"#
         );
 
         Ok(())

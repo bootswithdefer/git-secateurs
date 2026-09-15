@@ -14,12 +14,12 @@ use thiserror::Error;
     version,
     about = "Automatically trims your tracking branches whose upstream branches are merged or stray.",
     long_about = "Automatically trims your tracking branches whose upstream branches are merged or stray.
-`git-trim` is a missing companion to the `git fetch --prune` and a proper, safer, faster alternative to your `<bash oneliner HERE>`."
+`git-secat` is a missing companion to the `git fetch --prune` and a proper, safer, faster alternative to your `<bash oneliner HERE>`."
 )]
 pub struct Args {
     /// Comma separated multiple names of branches.
     /// All the other branches are compared with the upstream branches of those branches.
-    /// [default: branches that tracks `git symbolic-ref refs/remotes/*/HEAD`] [config: trim.bases]
+    /// [default: branches that tracks `git symbolic-ref refs/remotes/*/HEAD`] [config: secat.bases]
     ///
     /// The default value is a branch that tracks `git symbolic-ref refs/remotes/*/HEAD`.
     /// They might not be reflected correctly when the HEAD branch of your remote repository is changed.
@@ -29,31 +29,31 @@ pub struct Args {
     pub bases: Vec<String>,
 
     /// Comma separated multiple glob patterns (e.g. `release-*`, `feature/*`) of branches that should never be deleted.
-    /// [config: trim.protected]
+    /// [config: secat.protected]
     #[clap(short, long, value_delimiter = ',')]
     pub protected: Vec<String>,
 
     /// Do not update remotes
-    /// [config: trim.update]
+    /// [config: secat.update]
     #[clap(long)]
     pub no_update: bool,
     #[clap(long, hide(true))]
     pub update: bool,
 
     /// Prevents too frequent updates. Seconds between updates in seconds. 0 to disable.
-    /// [default: 5] [config: trim.updateInterval]
+    /// [default: 5] [config: secat.updateInterval]
     #[clap(long)]
     pub update_interval: Option<u64>,
 
     /// Do not ask confirm
-    /// [config: trim.confirm]
+    /// [config: secat.confirm]
     #[clap(long)]
     pub no_confirm: bool,
     #[clap(long, hide(true))]
     pub confirm: bool,
 
     /// Do not detach when HEAD is about to be deleted
-    /// [config: trim.detach]
+    /// [config: secat.detach]
     #[clap(long)]
     pub no_detach: bool,
     #[clap(long, hide(true))]
@@ -63,7 +63,7 @@ pub struct Args {
     /// Delete range is one of the `merged, merged-local, merged-remote, stray, diverged, local, remote`.
     /// `:<remote name>` is only necessary to a `<delete range>` when the range is applied to remote branches.
     /// You can use `*` as `<remote name>` to delete a range of branches from all remotes.
-    /// [default : `merged:origin`] [config: trim.delete]
+    /// [default : `merged:origin`] [config: secat.delete]
     ///
     /// `merged` implies `merged-local,merged-remote`.
     ///
@@ -244,7 +244,7 @@ impl DeleteFilter {
                 DeleteUnit::MergedNonUpstreamRemoteTracking(Scope::Scoped(specific))
                     if specific == remote =>
                 {
-                    return true
+                    return true;
                 }
                 _ => {}
             }
@@ -261,7 +261,7 @@ impl DeleteFilter {
             match unit {
                 DeleteUnit::MergedRemote(Scope::All) => return true,
                 DeleteUnit::MergedRemote(Scope::Scoped(specific)) if specific == remote => {
-                    return true
+                    return true;
                 }
                 _ => {}
             }
@@ -295,7 +295,7 @@ impl DeleteFilter {
                 DeleteUnit::MergedNonUpstreamRemoteTracking(Scope::Scoped(specific))
                     if specific == remote =>
                 {
-                    return true
+                    return true;
                 }
                 _ => {}
             }

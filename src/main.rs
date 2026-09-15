@@ -10,12 +10,12 @@ use dialoguer::Confirm;
 use git2::{BranchType, Repository};
 use log::*;
 
-use git_trim::args::Args;
-use git_trim::config::{self, get, Config, ConfigValue};
-use git_trim::{
-    delete_local_branches, delete_remote_branches, get_trim_plan, ls_remote_head, remote_update,
-    ClassifiedBranch, ForceSendSync, Git, LocalBranch, PlanParam, RemoteHead, RemoteTrackingBranch,
-    SkipSuggestion, TrimPlan,
+use git_secateurs::args::Args;
+use git_secateurs::config::{self, Config, ConfigValue};
+use git_secateurs::{
+    ClassifiedBranch, ForceSendSync, Git, LocalBranch, Plan, PlanParam, RemoteHead,
+    RemoteTrackingBranch, SkipSuggestion, delete_local_branches, delete_remote_branches, get_plan,
+    ls_remote_head, remote_update,
 };
 
 fn main() -> Result<()> {
@@ -35,7 +35,7 @@ fn main() -> Result<()> {
     let git = Git::try_from(Repository::open_from_env()?)?;
 
     if git.repo.remotes()?.is_empty() {
-        return Err(anyhow::anyhow!("git-trim requires at least one remote"));
+        return Err(anyhow::anyhow!("git-secat requires at least one remote"));
     }
 
     let config = Config::read(&git.repo, &git.config, &args)?;
@@ -55,7 +55,7 @@ fn main() -> Result<()> {
         }
     }
 
-    let plan = get_trim_plan(
+    let plan = get_plan(
         &git,
         &PlanParam {
             bases: config.bases.iter().map(String::as_str).collect(),
@@ -86,8 +86,6 @@ fn main() -> Result<()> {
     delete_remote_branches(&git.repo, remotes.as_slice(), args.dry_run)?;
     delete_local_branches(&git.repo, &locals, args.dry_run)?;
 
-    prompt_survey_on_push_upstream(&git)?;
-
     if let Some(checker) = checker.take() {
         checker.check_and_notify(&git.repo)?;
     }
@@ -106,9 +104,9 @@ fn error_no_bases(repo: &Repository, bases: &ConfigValue<HashSet<String>>) -> Re
         }
     }
     const GENERAL_HELP: &[&str] = &[
-        "`git config trim.bases develop,master` for a repository.",
-        "`git config --global trim.bases develop,master` to set globally.",
-        "`git trim --bases develop,master` to set temporarily.",
+        "`git config secat.bases develop,master` for a repository.",
+        "`git config --global secat.bases develop,master` to set globally.",
+        "`git secat --bases develop,master` to set temporarily.",
     ];
     match bases {
         ConfigValue::Explicit(_) => {
@@ -118,7 +116,7 @@ fn error_no_bases(repo: &Repository, bases: &ConfigValue<HashSet<String>>) -> Re
         }
         ConfigValue::GitConfig(_) => {
             eprintln!(
-                "I found that `git config trim.bases` is empty! Try any following commands to set valid bases:"
+                "I found that `git config secat.bases` is empty! Try any following commands to set valid bases:"
             );
             for help in GENERAL_HELP {
                 eprint_bullet(help);
@@ -126,13 +124,16 @@ fn error_no_bases(repo: &Repository, bases: &ConfigValue<HashSet<String>>) -> Re
         }
         ConfigValue::Implicit(_) => {
             let remotes = repo.remotes()?;
-            let remotes: Vec<_> = remotes.iter().collect();
+            let remotes: Vec<&str> = remotes
+                .iter()
+                .filter_map(|remote_name| remote_name.ok().flatten())
+                .collect();
             if remotes.len() == 1 {
-                let remote = remotes[0].expect("non utf-8 remote name");
+                let remote = remotes[0];
                 eprintln!("I can't detect base branch! Try following any resolution:");
                 eprint_bullet(&format!(
                     "\
-`git remote set-head {remote} --auto` will help `git-trim` to automatically detect the base branch.
+`git remote set-head {remote} --auto` will help `git-secat` to automatically detect the base branch.
 If you see `{remote}/HEAD set to <base branch>` in the output of the previous command, \
 then `git branch --set-upstream {remote}/<base branch> <base branch>` to set an upstream branch for <base branch> if exists.",
                     remote = remote
@@ -141,7 +142,7 @@ then `git branch --set-upstream {remote}/<base branch> <base branch>` to set an 
                 eprintln!("I can't detect base branch! Try following any resolution:");
                 eprint_bullet(
                     "\
-`git remote set-head <remote> --auto` will help `git-trim` to automatically detect the base branch.
+`git remote set-head <remote> --auto` will help `git-secat` to automatically detect the base branch.
 Following command will sync all remotes for you:
 `for REMOTE in $(git remote); do git remote set-head \"$REMOTE\" --auto; done`
 Pick an appropriate one in mind if you see multiple `<remote>/HEAD set to <base branch>` in the output of the previous command.
@@ -158,7 +159,7 @@ Then `git branch --set-upstream <remote>/<base branch> <base branch>` to set an 
     Err(anyhow::anyhow!("No base branch is found!"))
 }
 
-pub fn print_summary(plan: &TrimPlan, repo: &Repository) -> Result<()> {
+pub fn print_summary(plan: &Plan, repo: &Repository) -> Result<()> {
     println!("Branches that will remain:");
     println!("  local branches:");
     let local_branches_to_delete = HashSet::<_>::from_iter(plan.locals_to_delete());
@@ -392,27 +393,4 @@ fn should_update(git: &Git, interval: u64, config_update: ConfigValue<bool>) -> 
     };
 
     Ok(elapsed.as_secs() >= interval)
-}
-
-fn prompt_survey_on_push_upstream(git: &Git) -> Result<()> {
-    for remote_name in git.repo.remotes()?.iter() {
-        let remote_name = remote_name.context("non-utf8 remote name")?;
-        let key = format!("remote.{}.push", remote_name);
-        if get::<String>(&git.config, &key).read()?.is_some() {
-            println!(
-                r#"
-
-Help wanted!
-I recognize that you've set a config `git config remote.{}.push`!
-I once (mis)used that config to classify branches, but I retracted it after realizing that I don't understand the config well.
-It would be very helpful to me if you share your use cases of the config to me.
-Here's the survey URL: https://github.com/foriequal0/git-trim/issues/134
-Thank you!
-                "#,
-                remote_name
-            );
-            break;
-        }
-    }
-    Ok(())
 }

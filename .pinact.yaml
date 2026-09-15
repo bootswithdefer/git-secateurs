@@ -1,0 +1,11 @@
+# pinact configuration
+# https://github.com/suzuki-shunsuke/pinact
+version: 3
+rules:
+  # dtolnay/rust-toolchain is distributed only via branches (master/stable/…)
+  # and publishes no version tags, so its SHA cannot be verified against a
+  # release tag. Pin it by SHA with a `# master` comment and skip verification.
+  - ignore: true
+    conditions:
+      - expr: |
+          ActionName == "dtolnay/rust-toolchain"

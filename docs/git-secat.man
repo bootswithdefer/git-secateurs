@@ -1,23 +1,23 @@
 GIT-TRIM(1)                                    General Commands Manual                                    GIT-TRIM(1)
 
 NAME
-       git-trim - Automatically trims your tracking branches whose upstream branches are merged or stray.
+       git-secat - Automatically trims your tracking branches whose upstream branches are merged or stray.
 
 SYNOPSIS
-       git-trim [FLAGS] [OPTIONS]
+       git-secat [FLAGS] [OPTIONS]
 
 FLAGS
        -h, --help
               Prints help information
 
        --no-update
-              Do not update remotes [config: trim.update]
+              Do not update remotes [config: secat.update]
 
        --no-confirm
-              Do not ask confirm [config: trim.confirm]
+              Do not ask confirm [config: secat.confirm]
 
        --no-detach
-              Do not detach when HEAD is about to be deleted [config: trim.detach]
+              Do not detach when HEAD is about to be deleted [config: secat.detach]
 
        --dry-run
               Do not delete branches, show what branches will be deleted
@@ -26,7 +26,7 @@ OPTIONS
        -b, --bases=bases
               Comma separated multiple names of branches. All the other branches are compared with the upstream
               branches of those branches. [default: branches that tracks `git symbolic-ref refs/remotes/*/HEAD`]
-              [config: trim.bases]
+              [config: secat.bases]
 
               The default value is a branch that tracks `git symbolic-ref refs/remotes/*/HEAD`. They might not be
               reflected correctly when the HEAD branch of your remote repository is changed. You can see the changed
@@ -35,17 +35,17 @@ OPTIONS
 
        -p, --protected=protected
               Comma separated multiple glob patterns (e.g. `release-*`, `feature/*`) of branches that should never be
-              deleted. [config: trim.protected]
+              deleted. [config: secat.protected]
 
        --update-interval=update_interval
               Prevents too frequent updates. Seconds between updates in seconds. 0 to disable. [default: 5] [config:
-              trim.updateInterval]
+              secat.updateInterval]
 
        -d, --delete=delete
               Comma separated values of `<delete range>[:<remote name>]`. Delete range is one of the `merged,
               merged-local, merged-remote, stray, diverged, local, remote`. `:<remote name>` is only necessary to a
               `<delete range>` when the range is applied to remote branches. You can use `*` as `<remote name>` to
-              delete a range of branches from all remotes. [default : `merged:origin`] [config: trim.delete]
+              delete a range of branches from all remotes. [default : `merged:origin`] [config: secat.delete]
 
               `merged` implies `merged-local,merged-remote`.
 
