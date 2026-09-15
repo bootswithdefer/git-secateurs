@@ -3,7 +3,8 @@
 git-secateurs
 =============
 
-![git-secateurs logo](images/logo.png)
+<img src="images/logo.svg" alt="git-secateurs logo" width="1000">
+
 
 `git-secateurs` automatically trims local tracking branches whose upstream branches are merged or stray.
 
@@ -56,4 +57,4 @@ It supports GitHub flow, git flow, and simple/triangular remote workflows, can `
 
 Git and the Git logo are either registered trademarks or trademarks of Software Freedom Conservancy, Inc., corporate home of the Git Project, in the United States and/or other countries.
 
-The logo is a derivative work of the [Git Logo](https://git-scm.com/downloads/logos) by [Jason Long](https://twitter.com/jasonlong), licensed under the [Creative Commons Attribution 3.0 Unported License](https://creativecommons.org/licenses/by/3.0/).
+The `git-secateurs` logo is not derived from or affiliated with the Git project. The secateurs illustration is by [Klàro](https://openclipart.org/artist/Kl%C3%A0ro) via [Openclipart](https://openclipart.org/detail/246324/snoeischaar), released into the public domain (CC0).
