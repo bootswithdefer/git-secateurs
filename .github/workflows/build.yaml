@@ -74,13 +74,14 @@ jobs:
     runs-on: ${{ matrix.os.long }}
     strategy:
       matrix:
+        # Integration tests drive shell-script fixtures through `bash`
+        # (see tests/fixture/mod.rs), so they require a POSIX shell and are
+        # not run on Windows. Windows is still covered by the `build` job.
         os:
         - long: ubuntu-latest
           short: linux
         - long: macOS-latest
           short: mac
-        - long: windows-latest
-          short: win
       fail-fast: false
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

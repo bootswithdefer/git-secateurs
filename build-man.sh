@@ -7,8 +7,10 @@ build)
     ;;
 run|"")
     mkdir -p docs/
+    # Only generate the deterministic roff source. A `man`-rendered plain-text
+    # copy was intentionally dropped: its output depends on the local man/groff
+    # implementation (GNU vs BSD), which made `docs-are-up-to-date` non-portable.
     cargo run --bin build-man --features build-man > docs/git-secat.1
-    MANWIDTH=120 man --no-hyphenation --no-justification docs/git-secat.1 > docs/git-secat.man
     ;;
 *)
     echo "Unknown mode: $MODE"

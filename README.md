@@ -36,7 +36,7 @@ git config secat.bases develop,master
 
 ## Configuration
 
-Configured via git config under the `secat.*` namespace (`secat.bases`, `secat.protected`, `secat.confirm`, `secat.update`, …). See `git secat --help` or the [man page](docs/git-secat.man) for the full list.
+Configured via git config under the `secat.*` namespace (`secat.bases`, `secat.protected`, `secat.confirm`, `secat.update`, …). See `git secat --help` or the [man page](docs/git-secat.1) for the full list.
 
 ## How it works
 
