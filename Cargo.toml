@@ -6,12 +6,24 @@ version = "0.1.0"
 authors = ["SeongChan Lee <foriequal@gmail.com>", "Jesse DeFer <git-secateurs@dotd.com>"]
 repository = "https://github.com/bootswithdefer/git-secateurs"
 readme = "README.md"
-keywords = ["git", "branch", "prune", "trim"]
+keywords = ["git", "branch", "prune", "secateurs"]
 categories = ["command-line-utilities", "development-tools"]
 edition = "2024"
 rust-version = "1.96"
 build = "build.rs"
 default-run = "git-secat"
+# Ship only what a consumer of the crate needs; exclude CI config, logo build
+# artifacts, and the raster logo to keep the published package lean.
+include = [
+    "src/**/*.rs",
+    "build.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "docs/git-secat.1",
+    "images/logo.svg",
+]
 
 [[bin]]
 name = "git-secat"
