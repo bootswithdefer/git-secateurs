@@ -2,7 +2,7 @@
 name = "git-secateurs"
 description = "Automatically trims your tracking branches whose upstream branches are merged or stray"
 license = "MIT"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["SeongChan Lee <foriequal@gmail.com>", "Jesse DeFer <git-secateurs@dotd.com>"]
 repository = "https://github.com/bootswithdefer/git-secateurs"
 readme = "README.md"
